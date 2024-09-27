@@ -45,11 +45,13 @@ def find_mb_files(*arg):
             if name.endswith(".mb") and asset_type.lower() != "" and asset_type.lower() in name:
                 # Get the full path to the file and append to list
                 mb_files.append(name)
-               
-                if get_part_before_dot(name) not in current_files:
-                    current_files[get_part_before_dot(name)] = [pad_to_three_digits(int(get_digits_after_v(name)))]
-                else:
-                    current_files[get_part_before_dot(name)].append(pad_to_three_digits(int(get_digits_after_v(name))))
+                print(get_digits_after_v(name))
+                
+                if get_digits_after_v(name) != None:
+                    if get_part_before_dot(name) not in current_files:
+                        current_files[get_part_before_dot(name)] = [pad_to_three_digits(int(get_digits_after_v(name)))]
+                    else:
+                        current_files[get_part_before_dot(name)].append(pad_to_three_digits(int(get_digits_after_v(name))))
        
     #Separate array required to load into text list    
     current_keys = []      
