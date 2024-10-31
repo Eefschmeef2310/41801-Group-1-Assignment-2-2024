@@ -39,7 +39,7 @@ def find_mb_files(*arg):
     mb_files = []   
     current_files = {}
     
-    asset_type = arg[0]
+    asset_type = cmds.optionMenuGrp('asset_types', q=True, v=True)
     if asset_type == '':
         #If no asset type selected, reset the system and exit early
         cmds.text("results_instruction", edit=True, l="No files found")
@@ -216,7 +216,7 @@ def file_open_tool():
     cmds.text('Publish or WIP?')
     cmds.radioCollection('wip_or_publish')
     cmds.radioButton( 'wip', label='WIP', sl=True, cc=find_mb_files )
-    cmds.radioButton( 'publish', label='Publish' )
+    cmds.radioButton( 'publish', label='Publish', cc=find_mb_files )
     cmds.setParent('..')
     
     #Sequence selection instruction
