@@ -5,7 +5,7 @@ import maya.cmds as cmds
 import re
 
 
-#get_sequences() method from Ethan's Asset Loading tool + then tweaked
+#get_sequences() method from Ethan's Asset Loading tool which has then been tweaked by myself to work with this tool
 def get_sequences():
     directory = cmds.workspace(q=True, rd=True) + "publish/sequence/"
     
@@ -16,7 +16,7 @@ def get_sequences():
         cmds.menuItem(folder, parent='sequence_id|OptionMenu')
     cmds.setParent('..')
 
-#get_shots() method from Ethan's Asset Loading tool + then tweaked    
+#get_shots() method from Ethan's Asset Loading tool which has then been tweaked by myself to work with this tool   
 def get_shots(*args):
     cmds.textScrollList('set_list', e=True, ra=True)
     cmds.optionMenuGrp('shot_id', e=True, en=False, dai=True)
@@ -35,11 +35,11 @@ def get_shots(*args):
         cmds.optionMenuGrp('shot_id', e=True, en=False, dai=True)
         
 
-#function from Ethan's Asset Loading tool    
+#function from Ethan's Asset Loading tool. Has not been altered    
 def pad_to_three_digits(number: int) -> str:
     return f"{number:03}"
 
-#function from Ethan's Asset Loading tool
+#function from Ethan's Asset Loading tool. Has not been altered 
 def get_digits_after_v(input_string):
     # Use regex to search for ".v" followed by digits
     match = re.search(r'\.v(\d+)', input_string)
@@ -51,7 +51,7 @@ def get_digits_after_v(input_string):
     # If no match is found, return None or an appropriate message
     return None
 
-#function from Ethan's Asset Loading tool
+#function from Ethan's Asset Loading tool. Has not been altered 
 def get_part_before_dot(input_string):
     # Find the index of the first period
     period_index = input_string.find('.')
@@ -63,12 +63,13 @@ def get_part_before_dot(input_string):
     # Return the substring before the first period
     return input_string[:period_index]
     
+#the function called when you press the 'Build/Update Scene' button
 def populate_lists(*arg):
     find_files('Set')
     find_files('Camera')
     find_files('Animation')
         
-#find_mb_files() function from Ethan's Asset Loading tool + then tweaked a lot by me
+#this is the find_mb_files() function from Ethan's Asset Loading tool which has then been majorly tweaked by myself to work with this tool
 def find_files(*arg):
     global current_files
     global current_keys
@@ -169,7 +170,7 @@ def find_latest_ver(*args):
     return names
      
     
-#method from ethan's asset loading system tool that has been tweaked by me
+#the load_file() method from ethan's asset loading system tool that has been tweaked a lot by me to work with this tool
 def load_reference(*args):
     file_name = args[0]
     namespace_name = str(args[1])
@@ -188,6 +189,7 @@ def load_reference(*args):
     else:
         print(f"Reference {file_name} is already loaded.")                
 
+#returns true if the reference is already loaded into the scene and false if it isnt
 def alreadyInScene(*args):
     namespace_name = args[0]
     scene_list = cmds.ls(dag=True, long=True)
@@ -197,7 +199,8 @@ def alreadyInScene(*args):
         if namespace_name in object:
             return True
     return False                   
-    
+
+#function to create all the UI    
 def create_ui():
     if cmds.window('sceneBuilder', exists = True):
         cmds.deleteUI('sceneBuilder')
@@ -212,13 +215,14 @@ def create_ui():
     cmds.text('Please select sequence and shot.')
     cmds.text('Then, please select which assets to load into scene.')
     
+    #sequence and shot dropdowns
     cmds.separator(h=20)
     cmds.columnLayout(adj=True, cal="right")
     cmds.optionMenuGrp('sequence_id', l='Sequence:', adjustableColumn=1, cl2=["right", "right"], cc=get_shots)
     get_sequences()
     cmds.optionMenuGrp('shot_id', l='Shot:', enable=False, changeCommand=populate_lists, adj=1, cl2=["right", "right"])
     
-    populate_lists
+    #list of assets
     cmds.separator(h=10)
     cmds.text('Set')
     cmds.textScrollList('set_list', h=50, allowMultiSelection=True)
@@ -230,7 +234,8 @@ def create_ui():
     cmds.separator(h=10)
     cmds.text('Character + Prop Animation Cache')
     cmds.textScrollList('animation_list', h=50, allowMultiSelection=True)
-
+    
+    #build scene button
     cmds.separator(h=10)
     cmds.button('build_scene', l='Build/Update Scene', c=load_references)
     
