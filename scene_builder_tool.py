@@ -131,21 +131,21 @@ def load_references(*args):
     selected_sets = cmds.textScrollList('set_list', q=True, si=True)
     if selected_sets != None:
         for set in selected_sets:
-            file_name = find_latest_ver(set, '.mb', "assets/set/")
-            load_reference(file_name + '.mb', file_name)
+            file_names = find_latest_ver(set, '.mb', "assets/set/")
+            load_reference(file_names[0], file_names[1])
     selected_cameras = cmds.textScrollList('camera_list', q=True, si=True)
     if selected_cameras != None:
         for camera_o in selected_cameras:
-            file_name = find_latest_ver(camera_o, '.abc', ("sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/" + cmds.optionMenuGrp('shot_id', q=True, v=True) + "/layout/caches/"))
-            load_reference(file_name + '.abc', file_name)
+            file_names = find_latest_ver(camera_o, '.abc', ("sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/" + cmds.optionMenuGrp('shot_id', q=True, v=True) + "/layout/caches/"))
+            load_reference(file_names[0], file_names[1])
     selected_animations = cmds.textScrollList('animation_list', q=True, si=True)
     print(selected_animations)
     if selected_animations != None:
         for animation in selected_animations:
             print(animation)
-            file_name = find_latest_ver(animation, '.abc', ("sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/" + cmds.optionMenuGrp('shot_id', q=True, v=True) + "/animation/caches/"))
+            file_names = find_latest_ver(animation, '.abc', ("sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/" + cmds.optionMenuGrp('shot_id', q=True, v=True) + "/animation/caches/"))
             #print("loading" + str(file_name))
-            load_reference(file_name + '.abc', file_name)
+            load_reference(file_names[0], file_names[1])
             
 #function which finds the latest version of the file            
 def find_latest_ver(*args):
@@ -154,6 +154,7 @@ def find_latest_ver(*args):
     directory = cmds.workspace(q=True, rd=True) + "publish/" + args[2]
     latest_ver = 0
     
+    names = []
     
     for root, dirs, files in os.walk(directory):
         for name in files:
@@ -161,8 +162,11 @@ def find_latest_ver(*args):
                 ver = pad_to_three_digits(int(get_digits_after_v(name)))
                 if int(ver) > int(latest_ver):
                     latest_ver = ver
-    file_name = str(asset_name) + ".v" + str(latest_ver)
-    return file_name
+    file_name = str(asset_name) + ".v" + str(latest_ver) + str(file_extension)
+    namespace_name = str(asset_name) + "_v" + str(latest_ver)
+    names.append(file_name)
+    names.append(namespace_name)
+    return names
      
     
 #method from ethan's asset loading system tool that has been tweaked by me
@@ -172,13 +176,27 @@ def load_reference(*args):
     #print("loading a reference")
     
     directory = cmds.workspace(q=True, rd=True) + "publish/"
-    
-    for root, dirs, files in os.walk(directory):
-        for name in files:
-            if name == file_name:
-                cmds.file(root + "/" + file_name, reference=True, loadReference = True, namespace= namespace_name) #force=True)
-                #print(f"Loaded reference: {file_name}")
-                
+    if not alreadyInScene(namespace_name):
+        for root, dirs, files in os.walk(directory):
+            for name in files:
+                if name == file_name:
+                    try:
+                        cmds.file(root + "/" + file_name, reference=True, loadReference = True, namespace= namespace_name) #force=True)
+                        print(f"Loaded reference: {file_name}")
+                    except Exception as e:
+                        print(f"Failed to load reference: {file_name}. Error: {str(e)}")
+    else:
+        print(f"Reference {file_name} is already loaded.")                
+
+def alreadyInScene(*args):
+    namespace_name = args[0]
+    scene_list = cmds.ls(dag=True, long=True)
+    for object in scene_list:
+        #print(object)
+        #print(namespace_name in object)
+        if namespace_name in object:
+            return True
+    return False                   
     
 def create_ui():
     if cmds.window('sceneBuilder', exists = True):
