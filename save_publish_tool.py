@@ -3,8 +3,8 @@ import re
 import maya.cmds as cmds
 import maya.mel as mel
 
-
-workspace_path = cmds.workspace(q=True, dir=True) #ROOT dir 
+workspace_path = cmds.workspace(q=True, fullName=True) + "/" #ROOT dir 
+print(workspace_path)
 wip_path = workspace_path + "wip" #Path to WIP folder
 publish_path = workspace_path + "publish" #Path to publish folder
 
@@ -18,7 +18,7 @@ if not cmds.pluginInfo("fbxmaya", query=True, loaded=True):
     cmds.loadPlugin("fbxmaya")
 if not cmds.pluginInfo("mayaUsdPlugin", query=True, loaded=True):
     cmds.loadPlugin("mayaUsdPlugin")
-
+    
 #mel.eval("FBXExportBakeComplexAnimation -v true")
 #mel.eval("FBXExportBakeComplexStart -v " + str(cmds.playbackOptions(q=True, min=True)))
 #mel.eval("FBXExportBakeComplexEnd -v " + str(cmds.playbackOptions(q=True, min=True)))
@@ -36,8 +36,9 @@ def get_latest_version():
                 latest_version = version_number
                 latest_file = os.path.join(directory, current_file)
     return latest_file
-
+    
 def save_file():
+    cmds.text(feedback, e=True, label = "Saving...")
     #Gets latest version and "version it up"
     latest_file = get_latest_version()
     new_version_number = int(re.search(r'\.v(\d+)', latest_file).group(1)) + 1 if latest_file else 1
@@ -45,8 +46,10 @@ def save_file():
     #Rename and save file to new path
     cmds.file(rename=new_file_path)
     cmds.file(save=True, type="mayaBinary")
+    cmds.text(feedback, e=True,  label="Finished!")
 
 def publish_button():
+    cmds.text(feedback, e=True, label ="Publishing...")
     #Non-shot files
     pub_dir = publish_path + re.sub(wip_path, "", re.sub(publish_path, "", directory))
     #Mean shot file and must export each asset inside
@@ -116,28 +119,28 @@ def publish_copy(pub_dir):
     cmds.file(rename=copy)
     cmds.file(save=True, type="mayaBinary")
 
-def customWindow():
 
-    WINDOW_NAME = 'SavePublishTool'
+WINDOW_NAME = 'SavePublishTool'
+
+if cmds.window(WINDOW_NAME, exists = True):
+    cmds.deleteUI(WINDOW_NAME)
     
-    if cmds.window(WINDOW_NAME, exists = True):
-        cmds.deleteUI(WINDOW_NAME)
-        
-    cmds.window(WINDOW_NAME, widthHeight=(10,10), resizeToFitChildren=True)
+cmds.window(WINDOW_NAME, widthHeight=(10,10), resizeToFitChildren=True)
 
-    cmds.columnLayout(adj=True)
+cmds.columnLayout(adj=True)
+
+cmds.separator(h=10)
+cmds.text('Save your file', w=400)
+cmds.separator(h=10)
+
+cmds.button(label = 'Save', command = lambda x: save_file(), sbm="Save current progress and version-up this file", width=300)
+cmds.text("Saves your file to: " + wip_path + re.sub(wip_path, "", re.sub(publish_path, "", directory)), width = 300, ww=True)
+cmds.separator(h=10)
+cmds.button(label = 'Publish', command = lambda x: publish_button(), sbm="Publish assets from this file to specified formats", width=200)
+cmds.text("Publish your file to: " + publish_path + re.sub(wip_path, "", re.sub(publish_path, "", directory)), width = 300, ww=True)
+
+
+cmds.separator(h=10)
+feedback = cmds.text(label = '', h=40)
     
-    cmds.separator(h=10)
-    cmds.text('Save')
-    cmds.separator(h=10)
-    cmds.button(label = 'Button 1', command = lambda x: save_file(), width=200)
-
-    cmds.separator(h=10)
-    cmds.text('Publish')
-    cmds.separator(h=10)
-    
-    cmds.button(label = 'Button 2', command = lambda x: publish_button(), width=200)
-
-    cmds.showWindow(WINDOW_NAME)
-
-customWindow()
+cmds.showWindow(WINDOW_NAME)
