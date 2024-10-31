@@ -103,7 +103,6 @@ def find_files(*arg):
     # Walk through the directory and subdirectories
     for root, dirs, files in os.walk(directory):
         for name in files:
-            print(name)
             # Check if the file has the right extension
             if name.endswith(file_type) and asset_type.lower() != "" and asset_type.lower() in name:
                 # Get the full path to the file and append to list
@@ -123,61 +122,63 @@ def find_files(*arg):
     cmds.textScrollList(results_field, e=True, a=current_keys)
     
 #function which gathers all of the selected assets and calls the load_file function for each    
-def load_files(*args):
+def load_references(*args):
     selected_files = []
+    file_type = ''
+    
     
     #gather all the names of the selected assets from the lists
     selected_sets = cmds.textScrollList('set_list', q=True, si=True)
     if selected_sets != None:
         for set in selected_sets:
-            selected_files.append(set)
+            file_name = find_latest_ver(set, '.mb', "assets/set/")
+            load_reference(file_name + '.mb', file_name)
     selected_cameras = cmds.textScrollList('camera_list', q=True, si=True)
     if selected_cameras != None:
         for camera_o in selected_cameras:
-            selected_files.append(camera_o)
+            file_name = find_latest_ver(camera_o, '.abc', ("sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/" + cmds.optionMenuGrp('shot_id', q=True, v=True) + "/layout/caches/"))
+            load_reference(file_name + '.abc', file_name)
     selected_animations = cmds.textScrollList('animation_list', q=True, si=True)
+    print(selected_animations)
     if selected_animations != None:
         for animation in selected_animations:
-            selected_files.append(animation)
-    
-    #loop through all the selected assets and call load_file
-    if(selected_files == None or selected_files == []):
-        print("No files selected")
-    else:
-        for file_o in selected_files:
-            file_name = find_latest_ver(file_o)
-            if (file_name):
-                 load_file(file_name)
-            else:
-                print("ERROR FINDING LATEST VERSION OF FILE")
+            print(animation)
+            file_name = find_latest_ver(animation, '.abc', ("sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/" + cmds.optionMenuGrp('shot_id', q=True, v=True) + "/animation/caches/"))
+            #print("loading" + str(file_name))
+            load_reference(file_name + '.abc', file_name)
             
 #function which finds the latest version of the file            
 def find_latest_ver(*args):
     asset_name = args[0]
+    file_extension = args[1]
+    directory = cmds.workspace(q=True, rd=True) + "publish/" + args[2]
     latest_ver = 0
     
-    directory = cmds.workspace(q=True, rd=True) + "publish/"
+    
     for root, dirs, files in os.walk(directory):
         for name in files:
-            if (asset_name in name and (name.endswith('.mb') or name.endswith('.abc'))):
+            if (asset_name in name and name.endswith(file_extension)):
                 ver = pad_to_three_digits(int(get_digits_after_v(name)))
                 if int(ver) > int(latest_ver):
                     latest_ver = ver
-    file_name = str(asset_name) + ".v" + str(latest_ver) + ".mb"
+    file_name = str(asset_name) + ".v" + str(latest_ver)
     return file_name
      
     
 #method from ethan's asset loading system tool that has been tweaked by me
-def load_file(*args):
+def load_reference(*args):
     file_name = args[0]
+    namespace_name = str(args[1])
+    #print("loading a reference")
     
     directory = cmds.workspace(q=True, rd=True) + "publish/"
     
     for root, dirs, files in os.walk(directory):
         for name in files:
             if name == file_name:
-                cmds.file(root + "/" + file_name, open=True, force=True)
-
+                cmds.file(root + "/" + file_name, reference=True, loadReference = True, namespace= namespace_name) #force=True)
+                #print(f"Loaded reference: {file_name}")
+                
     
 def create_ui():
     if cmds.window('sceneBuilder', exists = True):
@@ -213,9 +214,7 @@ def create_ui():
     cmds.textScrollList('animation_list', h=50, allowMultiSelection=True)
 
     cmds.separator(h=10)
-    cmds.button('build_scene', l='Build/Update Scene', c=load_files)
-   
-    
+    cmds.button('build_scene', l='Build/Update Scene', c=load_references)
     
     cmds.showWindow('sceneBuilder')
 
