@@ -36,12 +36,16 @@ def find_mb_files(*arg):
     
     asset_type = cmds.optionMenuGrp('asset_types', q=True, v=True)
     if asset_type == '':
+        cmds.textScrollList('searchResults', e=True, ra=True)
+        cmds.textFieldGrp('search_filter', e= True, en = cmds.textScrollList('searchResults', q=True, ni=True) > 0, tx="")
         return
    
     directory = cmds.workspace(q=True, rd=True) + cmds.radioCollection('wip_or_publish', q=True, sl=True) + "/"
     
     if cmds.optionMenuGrp('sequence_id', q=True, v=True):
-        directory += "sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/" + cmds.optionMenuGrp('shot_id', q=True, v=True) + "/"
+        directory += "sequence/" + cmds.optionMenuGrp('sequence_id', q=True, v=True) + "/"
+        if cmds.optionMenuGrp('shot_id', q=True, v=True):
+            directory += cmds.optionMenuGrp('shot_id', q=True, v=True) + "/"
     else:
         directory += "assets/"
     
@@ -165,10 +169,10 @@ def load_asset_types(*args):
         cmds.menuItem('Lighting', parent='asset_types|OptionMenu')
         
     #Disable asset type if sequence specified but shot isn't
-    if cmds.optionMenuGrp('sequence_id', q=True, v=True) != '' and cmds.optionMenuGrp('shot_id', q=True, v=True) == '':
-        cmds.optionMenuGrp('asset_types', e=True, en=False)
-    elif cmds.optionMenuGrp('sequence_id', q=True, v=True) != '' and cmds.optionMenuGrp('shot_id', q=True, v=True) != '':
-        cmds.optionMenuGrp('asset_types', e=True, en=True)
+    #if cmds.optionMenuGrp('sequence_id', q=True, v=True) != '' and cmds.optionMenuGrp('shot_id', q=True, v=True) == '':
+        #cmds.optionMenuGrp('asset_types', e=True, en=False)
+    #elif cmds.optionMenuGrp('sequence_id', q=True, v=True) != '' and cmds.optionMenuGrp('shot_id', q=True, v=True) != '':
+        #cmds.optionMenuGrp('asset_types', e=True, en=True)
         
     cmds.setParent('..')
    
@@ -195,7 +199,7 @@ def file_open_tool():
     get_sequences()
     
     cmds.columnLayout(adj=True)
-    cmds.optionMenuGrp('shot_id', l='Specify shot? Asset will be searched if empty', en=False, cc=load_asset_types, adj=1, cal=[1,"center"])
+    cmds.optionMenuGrp('shot_id', l='Specify shot? Every shot will be searched if left empty.', cc=find_mb_files, en=False, adj=1, cal=[1,"center"])
    
     cmds.separator(h=10)
     
